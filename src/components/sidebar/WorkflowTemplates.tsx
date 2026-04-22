@@ -3,9 +3,8 @@
 // Demonstrates domain knowledge (onboarding, leave approval, doc verification)
 // ============================================================================
 
-import { useState, useEffect } from 'react'
 import { useWorkflowStore } from '@/store/workflowStore'
-import { FileText, UserCheck, FolderSearch, Star } from 'lucide-react'
+import { FileText, UserCheck, FolderSearch } from 'lucide-react'
 import type { Node, Edge } from 'reactflow'
 import type { WorkflowNodeData } from '@/types/workflow'
 
@@ -257,33 +256,17 @@ export const TEMPLATES: Template[] = [
 
 export const WorkflowTemplates = () => {
   const loadWorkflow = useWorkflowStore((s) => s.loadWorkflow)
-  const [customTemplates, setCustomTemplates] = useState<Template[]>([])
-
-  const loadCustomTemplates = () => {
-    try {
-      const stored = JSON.parse(localStorage.getItem('custom_templates') || '[]')
-      const mapped = stored.map((t: any) => ({
-        name: t.name,
-        icon: <Star size={14} className="text-yellow-500" />,
-        nodes: t.nodes,
-        edges: t.edges,
-      }))
-      setCustomTemplates(mapped)
-    } catch (e) {
-      console.error(e)
-    }
-  }
-
-  useEffect(() => {
-    loadCustomTemplates()
-    window.addEventListener('custom_templates_updated', loadCustomTemplates)
-    return () => window.removeEventListener('custom_templates_updated', loadCustomTemplates)
-  }, [])
 
   return (
     <div className="mt-auto p-3 border-t border-gray-700">
-      <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-2">
-        Templates
+      <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-2 flex justify-between items-center">
+        <span>Templates</span>
+        <button 
+          onClick={() => window.dispatchEvent(new Event('open_template_library'))}
+          className="text-blue-400 hover:text-blue-300 capitalize text-[9px]"
+        >
+          View Library
+        </button>
       </p>
       <div className="space-y-1">
         {TEMPLATES.map((template, idx) => (
@@ -300,29 +283,8 @@ export const WorkflowTemplates = () => {
             {template.name}
           </button>
         ))}
-
-        {customTemplates.length > 0 && (
-          <div className="pt-2 mt-2 border-t border-gray-700/50">
-            <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-2">
-              Custom Saved
-            </p>
-            {customTemplates.map((template, idx) => (
-              <button
-                key={`custom-${idx}`}
-                onClick={() => loadWorkflow(template.nodes, template.edges)}
-                className="w-full text-left text-xs text-gray-400 hover:text-white py-2 px-2.5
-                           hover:bg-gray-700/50 rounded-md transition-all duration-150
-                           flex items-center gap-2 group"
-              >
-                <span className="text-yellow-500/70 group-hover:text-yellow-400 transition-colors">
-                  {template.icon}
-                </span>
-                {template.name}
-              </button>
-            ))}
-          </div>
-        )}
       </div>
     </div>
   )
 }
+

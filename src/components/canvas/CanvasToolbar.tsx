@@ -18,7 +18,9 @@ import {
   PlayCircle,
   Bot,
   Search,
-  BookOpen
+  BookOpen,
+  Video,
+  Library
 } from 'lucide-react'
 import dagre from 'dagre'
 import { getRectOfNodes, getTransformForBounds } from 'reactflow'
@@ -125,6 +127,27 @@ export const CanvasToolbar = () => {
     window.dispatchEvent(new Event('start_live_demo'))
   }
 
+  const handleRecordGif = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getDisplayMedia({ video: true })
+      const mediaRecorder = new MediaRecorder(stream)
+      const chunks: BlobPart[] = []
+      mediaRecorder.ondataavailable = (e) => chunks.push(e.data)
+      mediaRecorder.onstop = () => {
+        const blob = new Blob(chunks, { type: 'video/webm' })
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = 'workflow-recording.webm'
+        a.click()
+        stream.getTracks().forEach(t => t.stop())
+      }
+      mediaRecorder.start()
+    } catch {
+      alert("Screen recording was cancelled or not supported by your browser.")
+    }
+  }
+
   return (
     <div className="flex items-center gap-1.5 px-4 py-2 bg-[#1e2128] border-b border-gray-700">
       {/* Brand */}
@@ -194,6 +217,14 @@ export const CanvasToolbar = () => {
         >
           <ImageIcon size={18} strokeWidth={2} />
         </button>
+        <button
+          onClick={handleRecordGif}
+          className="p-1.5 rounded-lg text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 transition-colors"
+          title="Record Screen"
+          disabled={nodes.length === 0}
+        >
+          <Video size={18} strokeWidth={2} />
+        </button>
 
         <button
           onClick={handleAutoLayout}
@@ -211,12 +242,7 @@ export const CanvasToolbar = () => {
       <button
         onClick={() => {
           if (nodes.length === 0) return
-          const presetName = prompt('Enter a name for this custom template:')
-          if (!presetName) return
-          const stored = JSON.parse(localStorage.getItem('custom_templates') || '[]')
-          stored.push({ name: presetName, nodes, edges })
-          localStorage.setItem('custom_templates', JSON.stringify(stored))
-          window.dispatchEvent(new Event('custom_templates_updated'))
+          window.dispatchEvent(new Event('open_save_modal'))
         }}
         className="toolbar-btn text-[#a855f7] hover:text-[#c084fc] hover:bg-[#a855f7]/10"
         title="Save as Custom Template"
@@ -229,27 +255,37 @@ export const CanvasToolbar = () => {
 
       {/* Interactive & AI Features */}
       <button
-        onClick={() => window.dispatchEvent(new Event('open_tutorial'))}
-        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-pink-500/10 text-pink-400 hover:bg-pink-500/20 transition-all font-semibold text-[11px] uppercase tracking-wider"
+        onClick={() => window.dispatchEvent(new Event('open_template_library'))}
+        className="flex items-center gap-2 px-4 py-1.5 rounded-xl border border-white/5 bg-white/[0.03] hover:bg-white/[0.08] hover:border-white/10 text-gray-300 hover:text-white transition-all shadow-sm font-semibold text-xs tracking-wide whitespace-nowrap"
       >
-        <BookOpen size={14} />
+        <Library size={14} className="text-blue-400" />
+        Library
+      </button>
+
+      <button
+        onClick={() => window.dispatchEvent(new Event('open_tutorial'))}
+        className="flex items-center gap-2 px-4 py-1.5 rounded-xl border border-white/5 bg-white/[0.03] hover:bg-white/[0.08] hover:border-white/10 text-gray-300 hover:text-white transition-all shadow-sm font-semibold text-xs tracking-wide whitespace-nowrap"
+      >
+        <BookOpen size={14} className="text-[#a855f7]" />
         Tutorial
       </button>
       
       <button
         onClick={handleLiveDemo}
-        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-teal-500/10 text-teal-400 hover:bg-teal-500/20 transition-all font-semibold text-[11px] uppercase tracking-wider animate-pulseRing"
+        className="relative group flex items-center gap-2 px-4 py-1.5 rounded-xl border border-teal-500/30 bg-teal-500/10 hover:bg-teal-500/20 text-teal-300 hover:text-teal-200 transition-all font-semibold text-xs tracking-wide overflow-hidden whitespace-nowrap"
       >
-        <PlayCircle size={14} />
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-teal-400/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+        <PlayCircle size={14} className="group-hover:scale-110 transition-transform" />
         Live Demo
       </button>
 
       <button
         onClick={() => window.dispatchEvent(new Event('toggle_copilot'))}
-        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#a855f7] hover:bg-[#b875f8] text-white shadow-lg shadow-purple-500/30 transition-all font-semibold text-[11px] uppercase tracking-wider"
+        className="relative group flex items-center gap-2 px-4 py-1.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white shadow-[0_0_15px_rgba(168,85,247,0.4)] hover:shadow-[0_0_25px_rgba(168,85,247,0.6)] transition-all font-semibold text-xs tracking-wide whitespace-nowrap"
       >
-        <Bot size={14} />
+        <Bot size={14} className="group-hover:rotate-12 transition-transform" />
         Copilot
+        <div className="absolute top-0 right-0 w-2 h-2 bg-pink-400 rounded-full animate-ping" />
       </button>
 
       {/* Spacer */}

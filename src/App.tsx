@@ -15,6 +15,8 @@ import { CopilotPanel } from '@/components/copilot/CopilotPanel'
 import { CommandPalette } from '@/components/experience/CommandPalette'
 import { LiveDemoMode } from '@/components/experience/LiveDemoMode'
 import { InteractiveTutorial } from '@/components/experience/InteractiveTutorial'
+import { SaveTemplateModal } from '@/components/experience/SaveTemplateModal'
+import { TemplateLibraryModal } from '@/components/experience/TemplateLibraryModal'
 
 export default function App() {
   return (
@@ -23,6 +25,8 @@ export default function App() {
         <CommandPalette />
         <LiveDemoMode />
         <InteractiveTutorial />
+        <SaveTemplateModal />
+        <TemplateLibraryModal />
         
         {/* Top toolbar */}
         <CanvasToolbar />
