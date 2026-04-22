@@ -26,38 +26,31 @@ export const useSimulate = () => {
     }
 
     setIsRunning(true)
-
+    
+    // Virtual Simulation Engine (Frontend Mock)
     try {
-      const res = await fetch('/api/simulate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nodes, edges }),
-      })
-
-      const result = await res.json()
-
-      if (!result.isValid) {
-        setErrors(
-          result.errors.map((msg: string) => ({
-            message: msg,
-            type: 'missing_connection' as const,
-          }))
-        )
-        return
-      }
+      const generatedSteps: SimulationStep[] = nodes.map((node, i) => ({
+        nodeId: node.id,
+        nodeType: (node.data as any).nodeType || 'task',
+        label: (node.data as any).title || node.data.label || 'Step',
+        status: 'success',
+        duration: Math.floor(Math.random() * 400) + 200,
+        timestamp: Date.now() + (i * 1000),
+        message: `Strategic Step ${i + 1}: ${node.data.label} completed successfully.`,
+        metrics: {
+          dropOffRate: Math.random() * 0.2,
+          efficiencyScore: 85 + (Math.random() * 15),
+          impactLevel: Math.random() > 0.5 ? 'high' : 'medium'
+        }
+      }))
 
       // Stream steps one at a time for "live execution" feel
-      for (const step of result.steps) {
-        await new Promise<void>((r) => setTimeout(r, 600))
+      for (const step of generatedSteps) {
+        await new Promise<void>((r) => setTimeout(r, 800))
         setSteps((prev) => [...prev, step])
       }
-    } catch {
-      setErrors([
-        {
-          message: 'Simulation failed — network error',
-          type: 'missing_connection',
-        },
-      ])
+    } catch (e) {
+      setErrors([{ message: 'Local simulation failed', type: 'missing_connection' }])
     } finally {
       setIsRunning(false)
     }
