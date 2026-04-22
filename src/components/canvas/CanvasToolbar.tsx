@@ -210,18 +210,17 @@ export const CanvasToolbar = () => {
         </button>
         
         <button
-          onClick={handleExportImage}
+          onClick={() => window.dispatchEvent(new CustomEvent('open_export_panel', { detail: 'photo' }))}
           className="p-1.5 rounded-lg text-emerald-400 hover:bg-emerald-500/10 hover:text-emerald-300 transition-colors"
-          title="Export as PNG Screenshot"
+          title="Export as PNG"
           disabled={nodes.length === 0}
         >
           <ImageIcon size={18} strokeWidth={2} />
         </button>
         <button
-          onClick={handleRecordGif}
+          onClick={() => window.dispatchEvent(new CustomEvent('open_export_panel', { detail: 'video' }))}
           className="p-1.5 rounded-lg text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 transition-colors"
           title="Record Screen"
-          disabled={nodes.length === 0}
         >
           <Video size={18} strokeWidth={2} />
         </button>
