@@ -28,15 +28,17 @@ import type {
 } from 'reactflow'
 import type { WorkflowNodeData, NodeType } from '@/types/workflow'
 import { createNode } from '@/utils/nodeHelpers'
+import { showToast } from '@/components/experience/ToastManager'
 
 // ---------------------------------------------------------------------------
 // State interface
 // ---------------------------------------------------------------------------
 
-interface WorkflowState {
+export interface WorkflowState {
   nodes: Node<WorkflowNodeData>[]
   edges: Edge[]
   selectedNodeId: string | null
+  viewMode: 'canvas' | 'pipeline'
 
   // React Flow change handlers
   onNodesChange: OnNodesChange
@@ -46,11 +48,14 @@ interface WorkflowState {
 
   // Custom actions
   setSelectedNode: (id: string | null) => void
+  setViewMode: (mode: 'canvas' | 'pipeline') => void
   addNode: (type: NodeType, position: XYPosition) => void
   updateNodeData: <T extends WorkflowNodeData>(id: string, data: Partial<T>) => void
   deleteNode: (id: string) => void
   setNodeValidation: (id: string, errors: string[]) => void
+  sessionId: number
   loadWorkflow: (nodes: Node<WorkflowNodeData>[], edges: Edge[]) => void
+  optimizeLayout: () => void
   clearCanvas: () => void
 
   // Selectors
@@ -67,6 +72,7 @@ export const useWorkflowStore = create<WorkflowState>()(
       nodes: [],
       edges: [],
       selectedNodeId: null,
+      viewMode: 'canvas',
 
       // React Flow handlers — delegate to the library's pure helpers
       onNodesChange: (changes) =>
@@ -89,6 +95,7 @@ export const useWorkflowStore = create<WorkflowState>()(
         }),
 
       setSelectedNode: (id) => set({ selectedNodeId: id }),
+      setViewMode: (mode) => set({ viewMode: mode }),
 
       addNode: (type, position) => {
         const newNode = createNode(type, position)
@@ -129,10 +136,53 @@ export const useWorkflowStore = create<WorkflowState>()(
         }),
 
 
+      sessionId: 0,
+
       loadWorkflow: (nodes, edges) => {
-        set({ nodes, edges, selectedNodeId: null })
-        // Tell the canvas to re-fit after a template is loaded
-        setTimeout(() => window.dispatchEvent(new Event('fit_view')), 50)
+        const idMap: Record<string, string> = {}
+        const safeId = () => Math.random().toString(36).slice(2, 10)
+        
+        // 1. Atomic ID mapping
+        const freshNodes = nodes.map(n => {
+          const newId = `${n.type || 'node'}-${safeId()}`
+          idMap[n.id] = newId
+          return { ...n, id: newId }
+        })
+        
+        const freshEdges = edges.map(e => ({
+          ...e,
+          id: `e-${safeId()}`,
+          source: idMap[e.source] || e.source,
+          target: idMap[e.target] || e.target,
+          animated: true,
+          type: 'smoothstep'
+        }))
+        
+        // 2. Atomic set with Session Jump to force ReactFlow refresh
+        set((state) => ({ 
+          nodes: freshNodes, 
+          edges: freshEdges, 
+          selectedNodeId: null,
+          sessionId: state.sessionId + 1
+        }))
+        
+        // 3. Robust fit_view trigger
+        setTimeout(() => window.dispatchEvent(new Event('fit_view')), 300)
+      },
+
+      optimizeLayout: () => {
+        const { nodes } = get()
+        if (nodes.length === 0) return
+        
+        // Perfectly straight horizontal layout: 300px spacing
+        const optimizedNodes = nodes.map((node, index) => ({
+          ...node,
+          position: { x: 100 + (index * 320), y: 250 }
+        }))
+        
+        set({ nodes: optimizedNodes })
+        setTimeout(() => window.dispatchEvent(new Event('fit_view')), 100)
+        showToast('Layout aligned in straight line!', 'success')
       },
 
 

@@ -302,7 +302,14 @@ export const InteractiveTutorial = () => {
                 <h3 className="text-lg font-bold text-white">Tutorial Completed! 🎉</h3>
                 <p className="text-xs text-gray-400">You've mastered the basics. Go build something amazing on the main canvas!</p>
                 <button
-                  onClick={() => setIsOpen(false)}
+                  onClick={() => {
+                    setIsOpen(false)
+                    // Wake up the main canvas and sync state
+                    setTimeout(() => {
+                      window.dispatchEvent(new Event('fit_view'))
+                      window.dispatchEvent(new Event('force_ui_sync'))
+                    }, 50)
+                  }}
                   className="w-full py-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-sm font-bold transition-all shadow-lg shadow-purple-500/30"
                 >
                   Start Building →

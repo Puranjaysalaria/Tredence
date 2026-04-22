@@ -21,7 +21,11 @@ import {
   Search,
   BookOpen,
   Video,
-  Library
+  Library,
+  BrainCircuit,
+  Layout,
+  Kanban,
+  Wand2
 } from 'lucide-react'
 import dagre from 'dagre'
 import { getRectOfNodes, getTransformForBounds } from 'reactflow'
@@ -30,6 +34,9 @@ import type { Node, Edge } from 'reactflow'
 import type { WorkflowNodeData } from '@/types/workflow'
 
 export const CanvasToolbar = () => {
+  const viewMode = useWorkflowStore(s => s.viewMode)
+  const setViewMode = useWorkflowStore(s => s.setViewMode)
+  
   const nodes = useWorkflowStore((s) => s.nodes)
   const edges = useWorkflowStore((s) => s.edges)
   const loadWorkflow = useWorkflowStore((s) => s.loadWorkflow)
@@ -152,162 +159,160 @@ export const CanvasToolbar = () => {
   }
 
   return (
-    <div className="flex items-center gap-1.5 px-4 py-2 bg-[#1e2128] border-b border-gray-700">
-      {/* Brand */}
-      <div className="flex items-center gap-2 mr-4">
-        <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-500/20">
-          <Workflow size={14} className="text-white" />
+    <div className="flex items-center justify-between px-4 py-2 bg-[#12101c]/95 border-b border-white/5 backdrop-blur-md z-[100]">
+      {/* LEFT: Branding & Search */}
+      <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 group cursor-pointer">
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-purple-500/20 group-hover:scale-105 transition-transform">
+            <Workflow size={16} className="text-white" />
+          </div>
+          <div className="flex flex-col">
+            <span className="font-black text-xs text-white tracking-tighter leading-none">
+              TREDENCE
+            </span>
+            <span className="text-[9px] font-bold text-purple-400/80 tracking-widest uppercase">
+              Designer
+            </span>
+          </div>
         </div>
-        <span className="font-bold text-sm text-white tracking-tight">
-          HR Workflow Designer
-        </span>
-      </div>
 
-      {/* Search (Cmd+K) */}
-      <button 
-        onClick={() => window.dispatchEvent(new Event('open_cmd_k'))}
-        className="flex items-center gap-2 bg-[#12101c] hover:bg-[#1a1825] border border-white/10 px-3 py-1.5 rounded-lg transition-colors cursor-text group"
-      >
-        <Search size={14} className="text-gray-400 group-hover:text-white" />
-        <span className="text-xs text-gray-500 mr-8">Search anything...</span>
-        <kbd className="hidden sm:inline-block px-1.5 rounded text-[10px] font-medium bg-white/10 text-gray-400">
-          ⌘K
-        </kbd>
-      </button>
+        <div className="h-6 w-px bg-white/10 mx-2" />
 
-      <div className="w-px h-5 bg-gray-600 mx-2" />
-
-      {/* Undo / Redo - Premium Pill Style */}
-      <div className="flex bg-[#12101c] border border-white/10 rounded-full p-0.5">
-        <button
-          onClick={handleUndo}
-          disabled={!canUndo}
-          className="p-1.5 rounded-full text-gray-400 hover:text-white hover:bg-white/10 disabled:opacity-30 transition-all font-bold"
-          title="Undo (Ctrl+Z)"
+        <button 
+          onClick={() => window.dispatchEvent(new Event('open_cmd_k'))}
+          className="flex items-center gap-3 bg-white/[0.03] hover:bg-white/[0.08] border border-white/5 px-3 py-1.5 rounded-xl transition-all group min-w-[180px]"
         >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4" strokeLinecap="round" strokeLinejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>
-        </button>
-        <button
-          onClick={handleRedo}
-          disabled={!canRedo}
-          className="p-1.5 rounded-full text-gray-400 hover:text-white hover:bg-white/10 disabled:opacity-30 transition-all font-bold"
-          title="Redo (Ctrl+Y)"
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4" strokeLinecap="round" strokeLinejoin="round"><path d="M21 7v6h-6"/><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3l3 2.7"/></svg>
+          <Search size={14} className="text-gray-500 group-hover:text-purple-400" />
+          <span className="text-[11px] text-gray-500 group-hover:text-gray-300 mr-8">Search...</span>
+          <kbd className="hidden sm:inline-block px-1.5 py-0.5 rounded text-[9px] font-black bg-white/5 text-gray-500">
+            ⌘K
+          </kbd>
         </button>
       </div>
 
-      <div className="w-px h-5 bg-gray-600 mx-2" />
+      {/* CENTER: View Switcher & Core Controls */}
+      <div className="flex items-center gap-6">
+        {/* View Toggle */}
+        <div className="flex bg-black/40 border border-white/5 rounded-xl p-1 gap-1">
+          <button
+            onClick={() => setViewMode('canvas')}
+            className={`flex items-center gap-2 px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'canvas' ? 'bg-purple-600 text-white shadow-lg' : 'text-gray-500 hover:text-gray-300 hover:bg-white/5'}`}
+          >
+            <Layout size={12} />
+            Canvas
+          </button>
+          <button
+            onClick={() => setViewMode('pipeline')}
+            className={`flex items-center gap-2 px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'pipeline' ? 'bg-purple-600 text-white shadow-lg' : 'text-gray-500 hover:text-gray-300 hover:bg-white/5'}`}
+          >
+            <Kanban size={12} />
+            Board
+          </button>
+        </div>
 
-      {/* Action Tools */}
-      <div className="flex gap-1">
-        <button
-          onClick={() => { exportWorkflow(nodes, edges); showToast('Workflow exported as JSON', 'success') }}
-          className="p-1.5 rounded-lg text-blue-400 hover:bg-blue-500/10 hover:text-blue-300 transition-colors"
-          title="Export JSON"
-        >
-          <Download size={18} strokeWidth={2} />
-        </button>
-        <button onClick={handleImport} className="p-1.5 rounded-lg text-blue-400 hover:bg-blue-500/10 hover:text-blue-300 transition-colors" title="Import JSON">
-          <Upload size={18} strokeWidth={2} />
-        </button>
+        {/* Undo/Redo */}
+        <div className="flex items-center gap-1 bg-white/[0.02] rounded-xl p-1 border border-white/5">
+          <button
+            onClick={handleUndo}
+            disabled={!canUndo}
+            className="p-1.5 rounded-lg text-gray-500 hover:text-white hover:bg-white/5 disabled:opacity-20 transition-all"
+            title="Undo"
+          >
+            <Undo2 size={16} />
+          </button>
+          <button
+            onClick={handleRedo}
+            disabled={!canRedo}
+            className="p-1.5 rounded-lg text-gray-500 hover:text-white hover:bg-white/5 disabled:opacity-20 transition-all"
+            title="Redo"
+          >
+            <Redo2 size={16} />
+          </button>
+        </div>
         
+        {/* Export/Import Group */}
+        <div className="flex items-center gap-1">
+          <button onClick={handleImport} className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-all" title="Import JSON">
+            <Upload size={16} />
+          </button>
+          <button onClick={() => exportWorkflow(nodes, edges)} className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-all" title="Export JSON">
+            <Download size={16} />
+          </button>
+          <button onClick={handleExportImage} className="p-2 rounded-xl text-emerald-500 hover:bg-emerald-500/10 transition-all" title="Snapshot PNG">
+            <ImageIcon size={16} />
+          </button>
+        </div>
+      </div>
+
+      {/* RIGHT: Advanced Tools & AI */}
+      <div className="flex items-center gap-3">
         <button
-          onClick={() => window.dispatchEvent(new CustomEvent('open_export_panel', { detail: 'photo' }))}
-          className="p-1.5 rounded-lg text-emerald-400 hover:bg-emerald-500/10 hover:text-emerald-300 transition-colors"
-          title="Export as PNG"
-          disabled={nodes.length === 0}
+          onClick={() => window.dispatchEvent(new Event('open_jd_intelligence'))}
+          className="flex items-center gap-2 px-3 py-1.5 h-9 rounded-xl bg-blue-500/5 border border-blue-500/20 text-blue-400 hover:bg-blue-500/10 hover:border-blue-500/40 transition-all group shrink-0"
+          title="JD Intelligence"
         >
-          <ImageIcon size={18} strokeWidth={2} />
-        </button>
-        <button
-          onClick={() => window.dispatchEvent(new CustomEvent('open_export_panel', { detail: 'video' }))}
-          className="p-1.5 rounded-lg text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 transition-colors"
-          title="Record Screen"
-        >
-          <Video size={18} strokeWidth={2} />
+          <BrainCircuit size={16} className="group-hover:rotate-12 transition-transform" />
+          <span className="text-[11px] font-bold tracking-tight whitespace-nowrap">JD INTEL</span>
         </button>
 
         <button
-          onClick={handleAutoLayout}
-          className="p-1.5 rounded-lg text-yellow-400 hover:bg-yellow-500/10 hover:text-yellow-300 transition-colors"
-          title="Auto-layout (dagre)"
-          disabled={nodes.length === 0}
+          onClick={() => window.dispatchEvent(new Event('open_template_library'))}
+          className="p-2 rounded-xl bg-white/[0.03] border border-white/5 text-gray-400 hover:text-white hover:bg-white/10 transition-all"
+          title="Library"
         >
-          <LayoutDashboard size={18} strokeWidth={2} />
+          <Library size={16} />
+        </button>
+
+        <button
+          onClick={() => useWorkflowStore.getState().optimizeLayout()}
+          className="p-2 rounded-xl bg-white/[0.03] border border-white/5 text-amber-400 hover:bg-amber-500/10 transition-all"
+          title="Optimize Layout"
+        >
+          <Wand2 size={16} />
+        </button>
+
+        <button
+          onClick={() => window.dispatchEvent(new Event('open_tutorial'))}
+          className="p-2 rounded-xl bg-white/[0.03] border border-white/5 text-purple-400 hover:bg-purple-500/10 transition-all"
+          title="Tutorial"
+        >
+          <BookOpen size={16} />
+        </button>
+ 
+        <button
+          onClick={() => window.dispatchEvent(new Event('start_live_demo'))}
+          className="p-2 rounded-xl bg-white/[0.03] border border-white/5 text-emerald-400 hover:bg-emerald-500/10 transition-all"
+          title="Live Demo"
+        >
+          <PlayCircle size={16} />
+        </button>
+ 
+        <button
+          onClick={() => window.dispatchEvent(new Event('open_export_panel'))}
+          className="p-2 rounded-xl bg-white/[0.03] border border-white/5 text-rose-400 hover:bg-rose-500/10 transition-all"
+          title="Record Video"
+        >
+          <Video size={16} />
+        </button>
+
+        <button
+          onClick={() => window.dispatchEvent(new Event('toggle_copilot'))}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg shadow-purple-500/30 hover:scale-105 active:scale-95 transition-all font-black text-[10px] uppercase tracking-widest"
+        >
+          <Bot size={14} />
+          Copilot
+        </button>
+
+        <div className="h-6 w-px bg-white/10 mx-1" />
+
+        <button
+          onClick={() => { clearCanvas(); showToast('Canvas cleared', 'info') }}
+          className="p-2 rounded-xl text-rose-500 hover:bg-rose-500/10 transition-all"
+          title="Clear"
+        >
+          <Trash2 size={16} />
         </button>
       </div>
-      
-      <div className="w-px h-5 bg-gray-600 mx-1" />
-
-      {/* Save Custom Template */}
-      <button
-        onClick={() => {
-          if (nodes.length === 0) return
-          window.dispatchEvent(new Event('open_save_modal'))
-        }}
-        className="toolbar-btn text-[#a855f7] hover:text-[#c084fc] hover:bg-[#a855f7]/10"
-        title="Save as Custom Template"
-        disabled={nodes.length === 0}
-      >
-        <Save size={16} />
-      </button>
-
-      <div className="w-px h-5 bg-gray-600 mx-2" />
-
-      {/* Interactive & AI Features */}
-      <button
-        onClick={() => window.dispatchEvent(new Event('open_template_library'))}
-        className="flex items-center gap-2 px-4 py-1.5 rounded-xl border border-white/5 bg-white/[0.03] hover:bg-white/[0.08] hover:border-white/10 text-gray-300 hover:text-white transition-all shadow-sm font-semibold text-xs tracking-wide whitespace-nowrap"
-      >
-        <Library size={14} className="text-blue-400" />
-        Library
-      </button>
-
-      <button
-        onClick={() => window.dispatchEvent(new Event('open_tutorial'))}
-        className="flex items-center gap-2 px-4 py-1.5 rounded-xl border border-white/5 bg-white/[0.03] hover:bg-white/[0.08] hover:border-white/10 text-gray-300 hover:text-white transition-all shadow-sm font-semibold text-xs tracking-wide whitespace-nowrap"
-      >
-        <BookOpen size={14} className="text-[#a855f7]" />
-        Tutorial
-      </button>
-      
-      <button
-        onClick={handleLiveDemo}
-        className="relative group flex items-center gap-2 px-4 py-1.5 rounded-xl border border-teal-500/30 bg-teal-500/10 hover:bg-teal-500/20 text-teal-300 hover:text-teal-200 transition-all font-semibold text-xs tracking-wide overflow-hidden whitespace-nowrap"
-      >
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-teal-400/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
-        <PlayCircle size={14} className="group-hover:scale-110 transition-transform" />
-        Live Demo
-      </button>
-
-      <button
-        onClick={() => window.dispatchEvent(new Event('toggle_copilot'))}
-        className="relative group flex items-center gap-2 px-4 py-1.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white shadow-[0_0_15px_rgba(168,85,247,0.4)] hover:shadow-[0_0_25px_rgba(168,85,247,0.6)] transition-all font-semibold text-xs tracking-wide whitespace-nowrap"
-      >
-        <Bot size={14} className="group-hover:rotate-12 transition-transform" />
-        Copilot
-        <div className="absolute top-0 right-0 w-2 h-2 bg-pink-400 rounded-full animate-ping" />
-      </button>
-
-      {/* Spacer */}
-      <div className="flex-1" />
-
-      {/* Node count */}
-      <span className="text-[11px] text-gray-500 mr-2">
-        {nodes.length} node{nodes.length !== 1 ? 's' : ''} ·{' '}
-        {edges.length} edge{edges.length !== 1 ? 's' : ''}
-      </span>
-
-      {/* Clear */}
-      <button
-        onClick={() => { clearCanvas(); showToast('Canvas cleared', 'info') }}
-        className="toolbar-btn text-red-400 hover:text-red-300"
-        title="Clear canvas"
-        disabled={nodes.length === 0}
-      >
-        <Trash2 size={16} />
-      </button>
     </div>
   )
 }

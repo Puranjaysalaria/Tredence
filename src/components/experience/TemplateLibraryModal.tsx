@@ -55,6 +55,8 @@ export const TemplateLibraryModal = () => {
     loadWorkflow(nodes, edges)
     setIsOpen(false)
     showToast(`"${name ?? 'Template'}" loaded onto canvas`, 'success')
+    // Secondary safety fit
+    setTimeout(() => window.dispatchEvent(new Event('fit_view')), 200)
   }
 
   return (

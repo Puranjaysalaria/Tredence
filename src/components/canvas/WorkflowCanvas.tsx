@@ -17,6 +17,9 @@ import { nodeTypes } from '@/components/nodes'
 import { useDragAndDrop } from '@/hooks/useDragAndDrop'
 import { useNodeValidation } from '@/hooks/useNodeValidation'
 import { getNodeColor } from '@/utils/nodeHelpers'
+import { PipelineView } from '@/components/experience/PipelineView'
+import { NodeContextMenu } from './NodeContextMenu'
+import { useState } from 'react'
 
 const defaultEdgeOptions = {
   type: 'smoothstep',
@@ -44,34 +47,65 @@ const CanvasInner = () => {
   const onConnect = useWorkflowStore((s) => s.onConnect)
   const onEdgeUpdate = useWorkflowStore((s) => s.onEdgeUpdate)
   const setSelectedNode = useWorkflowStore((s) => s.setSelectedNode)
+  const viewMode = useWorkflowStore((s) => s.viewMode)
+
+  const [menu, setMenu] = useState<{ id: string; top: number; left: number } | null>(null)
+
+  const onNodeContextMenu = useCallback(
+    (event: React.MouseEvent, node: any) => {
+      event.preventDefault()
+      setMenu({
+        id: node.id,
+        top: event.clientY,
+        left: event.clientX,
+      })
+    },
+    [setMenu]
+  )
+
+  const onPaneClick = useCallback(() => {
+    setMenu(null)
+    setSelectedNode(null)
+  }, [setSelectedNode])
 
   const { onDragOver, onDrop } = useDragAndDrop()
   useNodeValidation()
 
   const { fitView } = useReactFlow()
 
-  // Listen for fit_view events dispatched after template/workflow loads
+  // Listen for fit_view and sync events
   useEffect(() => {
     const handler = () => {
-      // Small delay to let ReactFlow process the new nodes first
       setTimeout(() => fitView({ padding: 0.2, duration: 400 }), 60)
     }
     window.addEventListener('fit_view', handler)
-    return () => window.removeEventListener('fit_view', handler)
+    window.addEventListener('force_ui_sync', handler)
+    return () => {
+      window.removeEventListener('fit_view', handler)
+      window.removeEventListener('force_ui_sync', handler)
+    }
   }, [fitView])
 
   // Also refit whenever nodes are bulk-loaded (template applied)
-  const prevCount = useCallback(() => nodes.length, [nodes.length])
+  const sessionId = useWorkflowStore((s) => s.sessionId)
+
+  // FORCE FIT: Whenever nodes change OR a new session starts
   useEffect(() => {
-    // Only auto-fit if there are nodes (not on clear)
     if (nodes.length > 0) {
-      setTimeout(() => fitView({ padding: 0.2, duration: 400 }), 80)
+      setTimeout(() => {
+        fitView({ padding: 0.2, duration: 400 })
+      }, 100)
     }
-  }, [nodes.length]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [nodes, sessionId, fitView])
+
+  if (viewMode === 'pipeline') {
+    return <PipelineView />
+  }
 
   return (
     <div className="flex-1 h-full" onDragOver={onDragOver} onDrop={onDrop}>
       <ReactFlow
+        key={`rf-${sessionId}`}
         nodes={nodes}
         edges={edges}
         nodeTypes={nodeTypes}
@@ -79,8 +113,9 @@ const CanvasInner = () => {
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
         onEdgeUpdate={onEdgeUpdate}
-        onNodeClick={(_, node) => setSelectedNode(node.id)}
-        onPaneClick={() => setSelectedNode(null)}
+        onNodeContextMenu={onNodeContextMenu}
+        onNodeClick={(_, node) => { setSelectedNode(node.id); setMenu(null) }}
+        onPaneClick={onPaneClick}
         defaultEdgeOptions={defaultEdgeOptions}
         deleteKeyCode="Delete"
         fitView
@@ -97,6 +132,7 @@ const CanvasInner = () => {
           className="!bg-[#151320]/80 !backdrop-blur-md !border-white/10 !shadow-lg"
           showInteractive={false}
         />
+        {menu && <NodeContextMenu {...menu} onClose={() => setMenu(null)} />}
         <MiniMap
           nodeColor={(node) =>
             getNodeColor((node.data as { nodeType?: string })?.nodeType ?? '')

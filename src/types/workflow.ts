@@ -89,6 +89,12 @@ export interface SimulationStep {
   duration: number
   message: string
   timestamp: number
+  // Strategic Analytics Data
+  metrics?: {
+    dropOffRate: number // 0.0 to 1.0
+    efficiencyScore: number // 0 to 100
+    impactLevel: 'low' | 'medium' | 'high'
+  }
 }
 
 export interface SimulationResult {

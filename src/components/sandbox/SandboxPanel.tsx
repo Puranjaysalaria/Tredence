@@ -5,6 +5,7 @@
 
 import { useSimulate } from '@/hooks/useSimulate'
 import { SimulationStep } from './SimulationStep'
+import { StrategicImpactReport } from './StrategicImpactReport'
 import {
   Play,
   RotateCcw,
@@ -93,11 +94,14 @@ export const SandboxPanel = () => {
                 <SimulationStep key={step.nodeId} step={step} index={i} />
               ))}
               {!isRunning && steps.length > 0 && (
-                <div className="flex items-center gap-2 text-xs text-green-400 font-medium mt-3 pt-2 border-t border-green-500/20">
-                  <CheckCircle2 size={14} />
-                  Workflow completed successfully — all {steps.length}{' '}
-                  steps executed
-                </div>
+                <>
+                  <div className="flex items-center gap-2 text-xs text-green-400 font-medium mt-3 pt-2 border-t border-green-500/20">
+                    <CheckCircle2 size={14} />
+                    Workflow completed successfully — all {steps.length}{' '}
+                    steps executed
+                  </div>
+                  <StrategicImpactReport steps={steps} />
+                </>
               )}
             </div>
           )}

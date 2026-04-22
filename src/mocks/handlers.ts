@@ -40,6 +40,9 @@ export const handlers = [
         else if (d.nodeType === 'automated') label = d.title || label
         else if (d.nodeType === 'end') label = d.endMessage || label
 
+        const dropOffRate = d.nodeType === 'approval' ? Math.random() * 0.2 + 0.1 : Math.random() * 0.05
+        const efficiencyScore = d.nodeType === 'automated' ? Math.floor(Math.random() * 10) + 90 : Math.floor(Math.random() * 30) + 60
+
         return {
           nodeId: node.id,
           nodeType: d.nodeType,
@@ -48,6 +51,11 @@ export const handlers = [
           duration: Math.floor(Math.random() * 800) + 150,
           message: getMockMessage(d.nodeType),
           timestamp: Date.now() + index * 600,
+          metrics: {
+            dropOffRate,
+            efficiencyScore,
+            impactLevel: dropOffRate > 0.15 ? 'high' : dropOffRate > 0.05 ? 'medium' : 'low'
+          }
         }
       })
 
