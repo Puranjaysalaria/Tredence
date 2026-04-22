@@ -10,4 +10,9 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
+  server: {
+    allowedHosts: ['tredence-sjue.onrender.com', '.onrender.com'],
+    port: process.env.PORT ? parseInt(process.env.PORT) : 5173,
+    strictPort: true,
+  },
 })
