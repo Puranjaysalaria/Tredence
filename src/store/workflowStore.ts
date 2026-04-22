@@ -128,8 +128,13 @@ export const useWorkflowStore = create<WorkflowState>()(
           ),
         }),
 
-      loadWorkflow: (nodes, edges) =>
-        set({ nodes, edges, selectedNodeId: null }),
+
+      loadWorkflow: (nodes, edges) => {
+        set({ nodes, edges, selectedNodeId: null })
+        // Tell the canvas to re-fit after a template is loaded
+        setTimeout(() => window.dispatchEvent(new Event('fit_view')), 50)
+      },
+
 
       clearCanvas: () =>
         set({ nodes: [], edges: [], selectedNodeId: null }),

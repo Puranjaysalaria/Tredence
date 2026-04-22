@@ -18,6 +18,7 @@ import { InteractiveTutorial } from '@/components/experience/InteractiveTutorial
 import { SaveTemplateModal } from '@/components/experience/SaveTemplateModal'
 import { TemplateLibraryModal } from '@/components/experience/TemplateLibraryModal'
 import { ExportPanel } from '@/components/experience/ExportPanel'
+import { ToastManager } from '@/components/experience/ToastManager'
 
 export default function App() {
   return (
@@ -29,6 +30,7 @@ export default function App() {
         <SaveTemplateModal />
         <TemplateLibraryModal />
         <ExportPanel />
+        <ToastManager />
         
         {/* Top toolbar */}
         <CanvasToolbar />

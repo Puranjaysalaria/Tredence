@@ -5,6 +5,7 @@
 
 import { useWorkflowStore } from '@/store/workflowStore'
 import { FileText, UserCheck, FolderSearch } from 'lucide-react'
+import { showToast } from '../experience/ToastManager'
 import type { Node, Edge } from 'reactflow'
 import type { WorkflowNodeData } from '@/types/workflow'
 
@@ -272,7 +273,10 @@ export const WorkflowTemplates = () => {
         {TEMPLATES.map((template, idx) => (
           <button
             key={idx}
-            onClick={() => loadWorkflow(template.nodes, template.edges)}
+            onClick={() => {
+              loadWorkflow(template.nodes, template.edges)
+              showToast(`"${template.name}" loaded`, 'success')
+            }}
             className="w-full text-left text-xs text-gray-400 hover:text-white py-2 px-2.5
                        hover:bg-gray-700/50 rounded-md transition-all duration-150
                        flex items-center gap-2 group"

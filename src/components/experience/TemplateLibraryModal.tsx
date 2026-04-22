@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Library, X, Trash2, FileText, Star } from 'lucide-react'
 import { useWorkflowStore } from '@/store/workflowStore'
 import { TEMPLATES } from '../sidebar/WorkflowTemplates'
+import { showToast } from './ToastManager'
 import type { Node, Edge } from 'reactflow'
 
 interface CustomTemplate {
@@ -41,16 +42,19 @@ export const TemplateLibraryModal = () => {
 
   const handleDelete = (e: React.MouseEvent, index: number) => {
     e.stopPropagation()
+    const name = customTemplates[index]?.name ?? 'Template'
     const stored = [...customTemplates]
     stored.splice(index, 1)
     localStorage.setItem('custom_templates', JSON.stringify(stored))
     fetchCustomTemplates()
     window.dispatchEvent(new Event('custom_templates_updated'))
+    showToast(`"${name}" deleted`, 'info')
   }
 
-  const handleApply = (nodes: Node[], edges: Edge[]) => {
+  const handleApply = (nodes: Node[], edges: Edge[], name?: string) => {
     loadWorkflow(nodes, edges)
     setIsOpen(false)
+    showToast(`"${name ?? 'Template'}" loaded onto canvas`, 'success')
   }
 
   return (
@@ -91,7 +95,7 @@ export const TemplateLibraryModal = () => {
                 {customTemplates.map((tpl, i) => (
                   <div 
                     key={i}
-                    onClick={() => handleApply(tpl.nodes, tpl.edges)}
+                    onClick={() => handleApply(tpl.nodes, tpl.edges, tpl.name)}
                     className="group relative bg-[#1c1a29] border border-white/5 hover:border-[#a855f7]/50 rounded-xl p-4 cursor-pointer transition-all hover:bg-[#252236] hover:-translate-y-1"
                   >
                     <div className="flex items-start justify-between">
@@ -125,7 +129,7 @@ export const TemplateLibraryModal = () => {
               {TEMPLATES.map((tpl, i) => (
                 <div 
                   key={`default-${i}`}
-                  onClick={() => handleApply(tpl.nodes, tpl.edges)}
+                  onClick={() => handleApply(tpl.nodes, tpl.edges, tpl.name)}
                   className="group bg-white/[0.03] border border-white/5 hover:border-blue-500/30 rounded-xl p-4 cursor-pointer transition-all hover:bg-white/[0.06] hover:-translate-y-1"
                 >
                   <div className="flex items-center gap-2 text-gray-200 font-medium">

@@ -8,6 +8,7 @@ import { X, Image as ImageIcon, Video, Download, Square, Loader2, CheckCircle2, 
 import { useWorkflowStore } from '@/store/workflowStore'
 import { getRectOfNodes, getTransformForBounds } from 'reactflow'
 import { toPng } from 'html-to-image'
+import { showToast } from './ToastManager'
 
 type Mode = 'pick' | 'photo' | 'video'
 type ImgStatus = 'idle' | 'capturing' | 'ready' | 'error'
@@ -83,6 +84,7 @@ export const ExportPanel = () => {
     a.download = `workflow-${Date.now()}.png`
     a.href = imgDataUrl
     a.click()
+    showToast('PNG downloaded!', 'success')
   }
 
   // ── Screen Recording ────────────────────────────────────────────────────────
@@ -124,6 +126,7 @@ export const ExportPanel = () => {
     a.href = vidBlobUrl
     a.download = `workflow-recording-${Date.now()}.webm`
     a.click()
+    showToast('Recording saved!', 'success')
   }
 
   if (!isOpen) return null

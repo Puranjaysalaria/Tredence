@@ -2,12 +2,14 @@
 // WorkflowCanvas — React Flow canvas with drag-drop, validation, and controls
 // ============================================================================
 
+import { useEffect, useCallback } from 'react'
 import ReactFlow, {
   Background,
   BackgroundVariant,
   Controls,
   MiniMap,
   MarkerType,
+  useReactFlow,
 } from 'reactflow'
 import 'reactflow/dist/style.css'
 import { useWorkflowStore } from '@/store/workflowStore'
@@ -19,10 +21,10 @@ import { getNodeColor } from '@/utils/nodeHelpers'
 const defaultEdgeOptions = {
   type: 'smoothstep',
   animated: true,
-  interactionWidth: 25, // Much easier to hover/select
+  interactionWidth: 25,
   markerEnd: {
     type: MarkerType.ArrowClosed,
-    color: '#a855f7', // purple-500
+    color: '#a855f7',
     width: 20,
     height: 20,
   },
@@ -33,7 +35,8 @@ const defaultEdgeOptions = {
   },
 }
 
-export const WorkflowCanvas = () => {
+// Inner component that can access the ReactFlow context
+const CanvasInner = () => {
   const nodes = useWorkflowStore((s) => s.nodes)
   const edges = useWorkflowStore((s) => s.edges)
   const onNodesChange = useWorkflowStore((s) => s.onNodesChange)
@@ -43,7 +46,28 @@ export const WorkflowCanvas = () => {
   const setSelectedNode = useWorkflowStore((s) => s.setSelectedNode)
 
   const { onDragOver, onDrop } = useDragAndDrop()
-  useNodeValidation() // Runs continuously, sets validation errors on nodes
+  useNodeValidation()
+
+  const { fitView } = useReactFlow()
+
+  // Listen for fit_view events dispatched after template/workflow loads
+  useEffect(() => {
+    const handler = () => {
+      // Small delay to let ReactFlow process the new nodes first
+      setTimeout(() => fitView({ padding: 0.2, duration: 400 }), 60)
+    }
+    window.addEventListener('fit_view', handler)
+    return () => window.removeEventListener('fit_view', handler)
+  }, [fitView])
+
+  // Also refit whenever nodes are bulk-loaded (template applied)
+  const prevCount = useCallback(() => nodes.length, [nodes.length])
+  useEffect(() => {
+    // Only auto-fit if there are nodes (not on clear)
+    if (nodes.length > 0) {
+      setTimeout(() => fitView({ padding: 0.2, duration: 400 }), 80)
+    }
+  }, [nodes.length]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="flex-1 h-full" onDragOver={onDragOver} onDrop={onDrop}>
@@ -89,3 +113,5 @@ export const WorkflowCanvas = () => {
     </div>
   )
 }
+
+export const WorkflowCanvas = () => <CanvasInner />

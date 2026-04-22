@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Save, X } from 'lucide-react'
 import { useWorkflowStore } from '@/store/workflowStore'
+import { showToast } from './ToastManager'
 
 export const SaveTemplateModal = () => {
   const [isOpen, setIsOpen] = useState(false)
@@ -26,6 +27,7 @@ export const SaveTemplateModal = () => {
     
     // Notify UI components that a new template is available
     window.dispatchEvent(new Event('custom_templates_updated'))
+    showToast(`Template "${templateName.trim()}" saved!`, 'success')
     
     setTemplateName('')
     setIsOpen(false)

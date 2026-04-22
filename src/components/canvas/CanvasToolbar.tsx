@@ -5,6 +5,7 @@
 import { useWorkflowStore } from '@/store/workflowStore'
 import { useTemporalStore } from '@/hooks/useWorkflowStore'
 import { exportWorkflow, importWorkflow } from '@/utils/exportImport'
+import { showToast } from '@/components/experience/ToastManager'
 import {
   Undo2,
   Redo2,
@@ -55,8 +56,9 @@ export const CanvasToolbar = () => {
       try {
         const { nodes: n, edges: ed } = await importWorkflow(file)
         loadWorkflow(n, ed)
+        showToast('Workflow imported successfully', 'success')
       } catch {
-        alert('Invalid workflow file')
+        showToast('Invalid workflow file — could not import', 'error')
       }
     }
     input.click()
@@ -97,6 +99,7 @@ export const CanvasToolbar = () => {
     })
 
     loadWorkflow(layoutedNodes, edges)
+    showToast('Auto-layout applied', 'info')
   }
 
   const handleExportImage = () => {
@@ -199,7 +202,7 @@ export const CanvasToolbar = () => {
       {/* Action Tools */}
       <div className="flex gap-1">
         <button
-          onClick={() => exportWorkflow(nodes, edges)}
+          onClick={() => { exportWorkflow(nodes, edges); showToast('Workflow exported as JSON', 'success') }}
           className="p-1.5 rounded-lg text-blue-400 hover:bg-blue-500/10 hover:text-blue-300 transition-colors"
           title="Export JSON"
         >
@@ -298,7 +301,7 @@ export const CanvasToolbar = () => {
 
       {/* Clear */}
       <button
-        onClick={clearCanvas}
+        onClick={() => { clearCanvas(); showToast('Canvas cleared', 'info') }}
         className="toolbar-btn text-red-400 hover:text-red-300"
         title="Clear canvas"
         disabled={nodes.length === 0}
